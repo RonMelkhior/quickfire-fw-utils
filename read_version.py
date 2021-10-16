@@ -3,6 +3,8 @@ import IPython
 import libscrc
 import struct
 
+import pwnlib.util.packing as pp
+
 COOLER_MASTER_VENDOR_ID = 0x2516
 KEYBOARD_NORMAL_PRODUCT_ID = 0x2e
 KEYBOARD_INTERFACE_ID = 0x1
@@ -12,23 +14,14 @@ def find_keyboard_device(c):
 		if device.getVendorID() == COOLER_MASTER_VENDOR_ID and device.getProductID() == KEYBOARD_NORMAL_PRODUCT_ID:
 			return device
 	return None
-
-def p16(num):
-	return struct.pack('=H', num)
-
-def p32(num):
-	return struct.pack('=L', num)
-
-def u32(payload):
-	return struct.unpack('=L', payload)[0]
 	
 def build_read_packet(start):
 	buf = bytearray(64)
 	buf[0] = 0x1
 	buf[1] = 0x2
-	buf[4:8] = p32(start)
-	buf[8:12] = p32(start + 63)
-	buf[2:4] = p16(libscrc.xmodem(bytes(buf)))
+	buf[4:8] = pp.p32(start)
+	buf[8:12] = pp.p32(start + 63)
+	buf[2:4] = pp.p16(libscrc.xmodem(bytes(buf)))
 	return buf
 
 
