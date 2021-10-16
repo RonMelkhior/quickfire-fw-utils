@@ -8,7 +8,7 @@ def find_device(device_list, target):
 
 def main():
 	with usb1.USBContext() as c:
-		device = find_device(c.getDeviceList(), 5426)
+		device = find_device(c.getDeviceList(), DEVICE_TARGET)
 		if device:
 			print('Found the device!')
 			print(f'Product ID: {device.getProductID()}')
