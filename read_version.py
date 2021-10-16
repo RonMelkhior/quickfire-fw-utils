@@ -11,7 +11,6 @@ def find_keyboard_device(c):
 	for device in c.getDeviceList():
 		if device.getVendorID() == COOLER_MASTER_VENDOR_ID and device.getProductID() == KEYBOARD_NORMAL_PRODUCT_ID:
 			return device
-
 	return None
 
 def p16(num):
@@ -35,7 +34,11 @@ def build_read_packet(start):
 
 def main():
 	with usb1.USBContext() as c:
-		k = find_keyboard_device(c).open()
+		try:
+			k = find_keyboard_device(c).open()
+		except AttributeError as e:
+			print(f"Couldn't find keyboard device: {e}")
+			return
 		with k.claimInterface(KEYBOARD_INTERFACE_ID):
 			result = b''
 			for i in range(10):
