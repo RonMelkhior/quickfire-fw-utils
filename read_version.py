@@ -35,7 +35,7 @@ def main():
 		with k.claimInterface(KEYBOARD_INTERFACE_ID):
 			result = b''
 			for i in range(10):
-				buf = build_read_packet(0x2c00 + (64 * i))
+				buf = build_read_packet(0x2800 + (64 * i))
 				k.interruptWrite(4, buf)
 				result += bytes(k.interruptRead(3, 64))
 			IPython.embed()
