@@ -15,16 +15,14 @@ def find_device(vendor_id: int,
     internal_device_list = device_list is None
     if internal_device_list:
         context = USBContext()
-        device_list = context.getDeviceList()
-    device_found = None
+        try:
+            device_list = context.getDeviceList()
+        finally:
+            context.close()
     for device in device_list:
         if device.getVendorID() == vendor_id and \
                 device.getProductID() == product_id:
-            device_found = device
-            break
-    if internal_device_list:
-        context.close()
-    return device_found
+            return device
 
 
 def build_read_packet(start: int):
@@ -78,13 +76,13 @@ def _parse_args() -> Namespace:
         "-vi", "--vendor-id",
         default=None,
         type=int,
-        help="The device's vendor ID."
+        help="The device's vendor ID.",
     )
     required.add_argument(
         "-pi", "--product-id",
         default=None,
         type=int,
-        help="The device's product ID."
+        help="The device's product ID.",
     )
 
     args = parser.parse_args()
