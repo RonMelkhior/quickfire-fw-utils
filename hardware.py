@@ -4,6 +4,8 @@ from typing import Optional
 from usb1 import USBContext
 from argparse import ArgumentParser, Namespace
 
+PACKET_FORMAT = "BBHII"
+NULL_BYTE = b"\x00"
 PACKET_SIZE = 64
 VERBOSE = 1
 DEBUG = 2
@@ -12,8 +14,8 @@ DEBUG = 2
 def find_device(vendor_id: int,
                 product_id: int,
                 device_list: Optional[list] = None):
-    internal_device_list = device_list is None
-    if internal_device_list:
+    use_internal_device_list = device_list is None
+    if use_internal_device_list:
         context = USBContext()
         try:
             device_list = context.getDeviceList()
@@ -26,10 +28,10 @@ def find_device(vendor_id: int,
 
 
 def build_read_packet(start: int):
-    buf = pack("BBHII", 0x1, 0x2, 0, start, start+63)
-    padding = pack("B", 0) * (PACKET_SIZE - len(buf))
+    buf = pack(PACKET_FORMAT, 0x1, 0x2, 0, start, start+63)
+    padding = NULL_BYTE * (PACKET_SIZE - len(buf))
     crc = xmodem(buf + padding)
-    buf = pack("BBHII", 0x1, 0x2, crc, start, start+63) + padding
+    buf = pack(PACKET_FORMAT, 0x1, 0x2, crc, start, start+63) + padding
     return buf
 
 
@@ -91,7 +93,7 @@ def _parse_args() -> Namespace:
         return
 
     failed = _validate_args(args)
-    if failed:  # Silent crushing.
+    if failed:  # Silent crashing.
         parser.print_usage()
         return
     return args
@@ -99,8 +101,8 @@ def _parse_args() -> Namespace:
 
 def main():
     args = _parse_args()
-    if args is None:  # Silent crushing.
-        return
+    if args is None:  # Silent crashing.
+        return -1
     if args.verbose >= VERBOSE:
         print("Starting to scan devices...")
     device = find_device(args.vendor_id, args.product_id)

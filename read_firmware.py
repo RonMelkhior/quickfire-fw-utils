@@ -9,9 +9,9 @@ KEYBOARD_INTERFACE_ID = 0x1
 
 def main():
     keyboard = find_device(COOLER_MASTER_VENDOR_ID, KEYBOARD_NORMAL_PRODUCT_ID)
-    if not keyboard:  # Silent crushing.
+    if not keyboard:  # Silent crashing.
         print("Keyboard not found.")
-        return
+        return -1
     interface = keyboard.open()
     with interface.claimInterface(KEYBOARD_INTERFACE_ID):
         result = b''
