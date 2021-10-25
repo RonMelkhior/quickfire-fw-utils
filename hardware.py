@@ -1,5 +1,6 @@
 from struct import pack
 from libscrc import xmodem
+from typing import Optional
 from usb1 import USBContext
 from argparse import ArgumentParser, Namespace
 
@@ -10,11 +11,20 @@ DEBUG = 2
 
 def find_device(vendor_id: int,
                 product_id: int,
-                device_list: list = USBContext().getDeviceList()):
+                device_list: Optional[list] = None):
+    internal_device_list = device_list is None
+    if internal_device_list:
+        context = USBContext()
+        device_list = context.getDeviceList()
+    device_found = None
     for device in device_list:
         if device.getVendorID() == vendor_id and \
                 device.getProductID() == product_id:
-            return device
+            device_found = device
+            break
+    if internal_device_list:
+        context.close()
+    return device_found
 
 
 def build_read_packet(start: int):
