@@ -7,7 +7,12 @@ KEYBOARD_NORMAL_PRODUCT_ID = 0x2e
 KEYBOARD_INTERFACE_ID = 0x1
 
 
-def main():
+def main() -> int:
+    """Reading keyboard's firmware.
+
+    Returns:
+        int or None: status code, None for success.
+    """
     keyboard = find_device(COOLER_MASTER_VENDOR_ID, KEYBOARD_NORMAL_PRODUCT_ID)
     if not keyboard:  # Silent crashing.
         print("Keyboard not found.")
