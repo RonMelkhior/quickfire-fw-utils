@@ -1,8 +1,8 @@
 from struct import pack
 from libscrc import xmodem
 from typing import Optional
-from usb1 import USBContext
-from argparse import ArgumentParser, Namespace
+from usb1 import USBContext, USBDevice
+from argparse import ArgumentParser, Namespace as ArgsNameSpace
 
 PACKET_FORMAT = "BBHII"
 NULL_BYTE = b"\x00"
@@ -13,7 +13,19 @@ DEBUG = 2
 
 def find_device(vendor_id: int,
                 product_id: int,
-                device_list: Optional[list] = None):
+                device_list: Optional[list] = None) -> Optional[USBDevice]:
+    """
+    Finds a USB device by given vendor and product ID.
+
+    Args:
+        vendor_id (int): The device's vendor ID
+        product_id (int): The device's product ID
+        device_list (Optional[list], optional): The list of devices (libusb1
+            format). Otherwise getting all USBs
+
+    Returns:
+        USBDevice or None: The device if found, otherwise None
+    """
     use_internal_device_list = device_list is None
     if use_internal_device_list:
         context = USBContext()
@@ -27,7 +39,15 @@ def find_device(vendor_id: int,
             return device
 
 
-def build_read_packet(start: int):
+def build_read_packet(start: int) -> Bytes:
+    """Building the read packet to send.
+
+    Args:
+        start (int): The start offset for reading.
+
+    Returns:
+        Bytes: The read packet with the start offset followed by 63 more.
+    """
     buf = pack(PACKET_FORMAT, 0x1, 0x2, 0, start, start+63)
     padding = NULL_BYTE * (PACKET_SIZE - len(buf))
     crc = xmodem(buf + padding)
@@ -35,14 +55,23 @@ def build_read_packet(start: int):
     return buf
 
 
-def print_list_devices():
+def print_list_devices() -> None:
+    """Prints the list of all the current USB devices."""
     print("List of current devices:")
     print("Bus\tDevice\tHEX ID [Vendor:Product]")
     for device in USBContext().getDeviceList():
         print(device)
 
 
-def _validate_args(args):
+def _validate_args(args: ArgsNameSpace) -> bool:
+    """Validates if the given args do contain vendor id and product id.
+
+    Args:
+        args (ArgsNameSpace): The arguments object.
+
+    Returns:
+        bool: failed or not.
+    """
     failed = False
     if args.vendor_id is None:
         print("Error: Missing vendor id.")
@@ -53,7 +82,13 @@ def _validate_args(args):
     return failed
 
 
-def _parse_args() -> Namespace:
+def _parse_args() -> Optional[ArgsNameSpace]:
+    """Retrieve the given args of the calling process.
+
+    Returns:
+        ArgsNameSpace: An args object containing all of the arguments passed,
+            or None if failure or print only.
+    """
     parser = ArgumentParser(
         description="Process the given vendor and product IDs.")
     parser.add_argument(
@@ -99,7 +134,13 @@ def _parse_args() -> Namespace:
     return args
 
 
-def main():
+def main() -> int:
+    """main function, called if specifically executed this file,
+        will enable you to retrieve a device or view current devices.
+
+    Returns:
+        int: status code.
+    """
     args = _parse_args()
     if args is None:  # Silent crashing.
         return -1
